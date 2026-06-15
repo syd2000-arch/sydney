@@ -263,9 +263,12 @@ function checkLimits(){
 
 /* ============================================================
    DERIV CONNECTION
+   WebSocket always uses numeric app_id 1089 (Deriv's public WS app).
+   The custom App ID (which may be a text client_id) is only used
+   for the OAuth redirect URL — not for the WebSocket handshake.
    ============================================================ */
 function connect(token){
-  ws=new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${appId()}`);
+  ws=new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=1089`);
   $('connDot').className='dot';
   ws.onopen=()=>ws.send(JSON.stringify({authorize:token}));
   ws.onmessage=ev=>{
