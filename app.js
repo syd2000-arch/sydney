@@ -45,20 +45,29 @@ function startOAuth(){
   location.href=`https://oauth.deriv.com/oauth2/authorize?app_id=${encodeURIComponent(id)}&l=EN`;
 }
 
-/* parse every acctN/tokenN/curN triplet Deriv appends on return */
-function parseAccounts(search){
-  const q=new URLSearchParams(search);
+/* parse every acctN/tokenN/curN triplet Deriv appends on return.
+   Deriv may return them as ?query OR #hash, and sometimes under a
+   /redirect/ path — so we check both query string and hash. */
+function parseAccounts(){
   const accts=[];
-  let i=1;
-  while(q.get('token'+i)){
-    accts.push({ loginid:q.get('acct'+i)||'', token:q.get('token'+i), cur:(q.get('cur'+i)||'').toUpperCase() });
-    i++;
+  // gather params from BOTH the query string and the hash fragment
+  const sources=[location.search, location.hash];
+  for(const src of sources){
+    if(!src) continue;
+    const clean=src.replace(/^[?#]/,'');
+    const q=new URLSearchParams(clean);
+    let i=1;
+    while(q.get('token'+i)){
+      accts.push({ loginid:q.get('acct'+i)||'', token:q.get('token'+i), cur:(q.get('cur'+i)||'').toUpperCase() });
+      i++;
+    }
+    if(accts.length) break; // found them in this source
   }
   return accts;
 }
 
 function readOAuthReturn(){
-  const accts=parseAccounts(location.search);
+  const accts=parseAccounts();
   if(accts.length){
     // strip tokens from the address bar / history immediately
     history.replaceState({}, document.title, location.pathname);
@@ -363,12 +372,20 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // returning from OAuth or restored session?
   const token=readOAuthReturn();
-  if(token) boot(token);
+  if(token){
+    boot(token);
+  } else if(location.search.includes('error')||location.hash.includes('error')){
+    // Deriv sent back an error instead of tokens — show it
+    log('Deriv returned an error during login. Check that your App ID and its Redirect URL exactly match this page.','l');
+  }
 });
 
 function boot(token){
   symbol=$('symbol').value;
   showApp(); setAuto(true);
   renderStats(); renderCircle(null);
+  // show an immediate connecting state so the screen is never blank
+  $('acctId').textContent='connecting…';
+  $('connDot').className='dot';
   connect(token);
 }
