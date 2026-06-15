@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DIFFER · Live Engine</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070a10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DIFFER">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===== LOGIN GATE ===== -->
+<div id="loginGate" class="gate">
+  <div class="gate-card">
+    <div class="logo"><b>DIFFER</b><span>ADAPTIVE TICK ENGINE</span></div>
+    <p class="gate-sub">Connect your Deriv account to stream live ticks and auto-trade.</p>
+    <button class="oauth" id="oauthBtn">Log in with Deriv</button>
+    <label class="adv-toggle" id="advToggle">Advanced: use API token instead</label>
+    <div class="adv" id="advBox">
+      <input id="tokenInput" type="password" placeholder="Deriv API token (read + trade)">
+      <button class="oauth ghost" id="tokenBtn">Connect with token</button>
+    </div>
+    <div class="gate-cfg">
+      <label>App ID</label><input id="appId" value="1089">
+    </div>
+    <p class="setup-hint" id="setupHint">⚠ App ID 1089 is Deriv's test app — OAuth login won't return here. Register your own app at app.deriv.com, set its OAuth Redirect URL to this page's address, and enter that App ID above. Or use the API-token option above to connect right now.</p>
+    <p class="disclaimer">Synthetic indices carry a built-in house edge. Auto-trading places real trades with real funds once connected. Trade only what you can afford to lose.</p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="app hidden">
+
+  <!-- top bar: balance / pnl / account -->
+  <header class="topbar">
+    <div class="acct">
+      <span class="dot" id="connDot"></span>
+      <span id="acctId">—</span>
+    </div>
+    <div class="metric">
+      <span class="m-k">BALANCE</span>
+      <span class="m-v" id="balance">—</span>
+    </div>
+    <div class="metric">
+      <span class="m-k">SESSION P/L</span>
+      <span class="m-v" id="pnl">$0.00</span>
+    </div>
+    <div class="topctl">
+      <button class="auto on" id="autoBtn">AUTO ●</button>
+      <button class="logout" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <!-- center prediction circle with running data behind it -->
+  <main class="stage">
+    <div class="orbit">
+      <!-- running 9-digit ticker + hidden analysis text rotate behind -->
+      <div class="behind" id="behind">
+        <div class="ring-text" id="ringText"></div>
+        <div class="ticker" id="ticker"></div>
+      </div>
+      <!-- confidence sweep -->
+      <svg class="sweep" viewBox="0 0 240 240">
+        <circle class="sweep-track" cx="120" cy="120" r="110"/>
+        <circle class="sweep-bar" id="sweepBar" cx="120" cy="120" r="110"/>
+      </svg>
+      <!-- core: prediction -->
+      <div class="core">
+        <div class="core-side" id="coreSide">DIFFERS</div>
+        <div class="core-digit" id="coreDigit">–</div>
+        <div class="core-conf" id="coreConf">waiting for data</div>
+      </div>
+    </div>
+
+    <!-- last digits strip -->
+    <div class="laststrip" id="laststrip"></div>
+
+    <!-- live trade status -->
+    <div class="tradebar">
+      <div class="tb-item"><span class="tb-k">WIN RATE</span><span class="tb-v" id="wr">—</span></div>
+      <div class="tb-item"><span class="tb-k">TRADES</span><span class="tb-v" id="trades">0</span></div>
+      <div class="tb-item"><span class="tb-k">STREAK</span><span class="tb-v" id="streak">0</span></div>
+      <div class="tb-item"><span class="tb-k">STAKE</span><span class="tb-v" id="stakeV">—</span></div>
+    </div>
+  </main>
+
+  <!-- collapsible settings -->
+  <section class="settings">
+    <div class="set-row">
+      <div><label>Symbol</label>
+        <select id="symbol">
+          <option value="R_10">Vol 10</option>
+          <option value="R_25">Vol 25</option>
+          <option value="R_50">Vol 50</option>
+          <option value="R_75" selected>Vol 75</option>
+          <option value="R_100">Vol 100</option>
+          <option value="1HZ75V">Vol 75 (1s)</option>
+        </select>
+      </div>
+      <div><label>Contract</label>
+        <select id="contract">
+          <option value="AUTO" selected>AUTO</option>
+          <option value="DIGITDIFF">DIFFERS</option>
+          <option value="DIGITMATCH">MATCHES</option>
+        </select>
+      </div>
+      <div><label>Stake</label><input id="stake" value="0.35"></div>
+    </div>
+    <div class="set-row">
+      <div><label>Min conf %</label><input id="minConf" value="62"></div>
+      <div><label>Martingale ×</label><input id="mart" value="2.0"></div>
+      <div><label>Take profit $</label><input id="tp" value="5"></div>
+      <div><label>Stop loss $</label><input id="sl" value="10"></div>
+    </div>
+    <div class="log" id="log"></div>
+  </section>
+</div>
+
+<script>
+  // register the PWA service worker (only works over https / GitHub Pages)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+</script>
+<script src="app.js"></script>
+</body>
+</html>
