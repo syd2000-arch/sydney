@@ -1,6 +1,6 @@
 /* DIFFER service worker — offline shell cache.
    Bumped CACHE name forces clients to pick up new versions. */
-const CACHE = 'differ-v4';
+const CACHE = 'differ-v5';
 const ASSETS = [
   './',
   './index.html',
